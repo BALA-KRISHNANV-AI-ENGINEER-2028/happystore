@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Star, MapPin, Navigation, Compass } from "lucide-react";
+import { Star, MapPin, Navigation, Plus, Minus } from "lucide-react";
 import { ProximityChip } from "@/components/ui/proximity-chip";
 import { cn } from "@/lib/utils";
 
@@ -26,24 +26,39 @@ export interface ShopMapProps {
   onShopSelect?: (shop: ShopMapPoint) => void;
 }
 
+const MIN_ZOOM = 10;
+const MAX_ZOOM = 16;
+// Half-width/height of the visible map (in degrees) at the baseline zoom level.
+// Each zoom step in/out halves/doubles this, matching standard slippy-map semantics.
+const BASE_ZOOM = 13;
+const BASE_LAT_DELTA = 0.03;
+const BASE_LNG_DELTA = 0.04;
+
 /** OpenStreetMap Leaflet Interactive Map Component */
 export function ShopMap({
   shops,
   centerLat = 40.7128,
   centerLng = -74.006,
-  zoom = 13,
+  zoom: initialZoom = BASE_ZOOM,
   className,
   onShopSelect,
 }: ShopMapProps) {
   const [selectedShop, setSelectedShop] = useState<ShopMapPoint | null>(shops[0] ?? null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [zoom, setZoom] = useState(() => Math.min(Math.max(initialZoom, MIN_ZOOM), MAX_ZOOM));
 
   useEffect(() => {
     if (shops.length > 0 && !selectedShop) {
       setSelectedShop(shops[0]);
     }
   }, [shops]);
+
+  // Reset the loading overlay whenever the viewport actually changes — the
+  // iframe re-fetches its tiles for the new bbox and briefly looks stale.
+  useEffect(() => {
+    setMapLoaded(false);
+  }, [centerLat, centerLng, zoom]);
 
   const handleLocateMe = () => {
     if (navigator.geolocation) {
@@ -58,10 +73,35 @@ export function ShopMap({
     }
   };
 
-  // Convert shop index into simulated spatial grid if real coords aren't available
+  const zoomIn = () => setZoom((z) => Math.min(z + 1, MAX_ZOOM));
+  const zoomOut = () => setZoom((z) => Math.max(z - 1, MIN_ZOOM));
+
+  // Visible map bounds for the current zoom level — smaller deltas as zoom
+  // increases (more zoomed in), larger as it decreases, halving/doubling per
+  // step just like a real slippy map.
+  const { west, east, north, south, latDelta, lngDelta } = useMemo(() => {
+    const scale = Math.pow(2, BASE_ZOOM - zoom);
+    const latD = BASE_LAT_DELTA * scale;
+    const lngD = BASE_LNG_DELTA * scale;
+    return {
+      latDelta: latD,
+      lngDelta: lngD,
+      west: centerLng - lngD,
+      east: centerLng + lngD,
+      north: centerLat + latD,
+      south: centerLat - latD,
+    };
+  }, [centerLat, centerLng, zoom]);
+
+  // Convert shop index into a simulated spatial grid if real coords aren't
+  // available, scaled to the current viewport so pins spread sensibly at any zoom.
   const getCoordinates = (shop: ShopMapPoint, index: number) => {
-    const lat = shop.latitude ?? centerLat + (index % 3 === 0 ? 0.012 : index % 2 === 0 ? -0.008 : 0.005);
-    const lng = shop.longitude ?? centerLng + (index % 4 === 0 ? 0.015 : index % 3 === 0 ? -0.011 : -0.004);
+    const lat =
+      shop.latitude ??
+      centerLat + (index % 3 === 0 ? 0.4 : index % 2 === 0 ? -0.27 : 0.17) * latDelta;
+    const lng =
+      shop.longitude ??
+      centerLng + (index % 4 === 0 ? 0.38 : index % 3 === 0 ? -0.28 : -0.1) * lngDelta;
     return { lat, lng };
   };
 
@@ -75,18 +115,30 @@ export function ShopMap({
       {/* OpenStreetMap Tile Background via Iframe Container for Crisp Rendering */}
       <iframe
         title="OpenStreetMap View"
-        className="absolute inset-0 h-full w-full border-0 opacity-85 transition-opacity hover:opacity-100"
-        src={`https://www.openstreetmap.org/export/embed.html?bbox=${centerLng - 0.04}%2C${centerLat - 0.03}%2C${centerLng + 0.04}%2C${centerLat + 0.03}&layer=mapnik&marker=${centerLat}%2C${centerLng}`}
+        className={cn(
+          "absolute inset-0 h-full w-full border-0 opacity-85 transition-opacity duration-300 hover:opacity-100",
+          !mapLoaded && "opacity-0"
+        )}
+        src={`https://www.openstreetmap.org/export/embed.html?bbox=${west}%2C${south}%2C${east}%2C${north}&layer=mapnik&marker=${centerLat}%2C${centerLng}`}
         onLoad={() => setMapLoaded(true)}
       />
 
-      {/* Interactive Shop Pins Overlay */}
+      {/* Loading skeleton — shown until the iframe reports the new viewport is ready */}
+      {!mapLoaded && (
+        <div className="absolute inset-0 flex animate-pulse items-center justify-center bg-surface-sunken">
+          <span className="text-caption font-medium text-foreground-muted">Loading map…</span>
+        </div>
+      )}
+
+      {/* Interactive Shop Pins Overlay — positioned by (real or simulated) coordinates */}
       <div className="absolute inset-0 z-10 pointer-events-none">
         {shops.slice(0, 8).map((shop, i) => {
           const isSelected = selectedShop?.id === shop.id;
-          // Calculate relative offsets for overlay pins on the map
-          const topPercent = 25 + (i * 9) % 55;
-          const leftPercent = 20 + (i * 13) % 65;
+          const { lat, lng } = getCoordinates(shop, i);
+          const clampedLat = Math.min(Math.max(lat, south), north);
+          const clampedLng = Math.min(Math.max(lng, west), east);
+          const topPercent = ((north - clampedLat) / (north - south)) * 100;
+          const leftPercent = ((clampedLng - west) / (east - west)) * 100;
 
           return (
             <button
@@ -120,6 +172,27 @@ export function ShopMap({
         >
           <Navigation size={16} className={userLocation ? "text-primary fill-primary/20" : ""} />
         </button>
+        <div className="flex flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-md">
+          <button
+            onClick={zoomIn}
+            disabled={zoom >= MAX_ZOOM}
+            title="Zoom in"
+            aria-label="Zoom in"
+            className="flex h-9 w-9 items-center justify-center text-foreground transition-colors hover:bg-surface-elevated active:scale-95 disabled:pointer-events-none disabled:opacity-40"
+          >
+            <Plus size={16} />
+          </button>
+          <div className="h-px w-full bg-border" />
+          <button
+            onClick={zoomOut}
+            disabled={zoom <= MIN_ZOOM}
+            title="Zoom out"
+            aria-label="Zoom out"
+            className="flex h-9 w-9 items-center justify-center text-foreground transition-colors hover:bg-surface-elevated active:scale-95 disabled:pointer-events-none disabled:opacity-40"
+          >
+            <Minus size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Active Shop Preview Card */}
