@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgis/postgis:15-3.3-alpine
+    container_name: happystore_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: happystore
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d happystore"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: happystore_redis
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      target: development
+    container_name: happystore_backend
+    ports:
+      - '4000:4000'
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/happystore?schema=public
+      - REDIS_HOST=redis
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:

@@ -1,0 +1,286 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis()] // Requires PostGIS extension enabled in PostgreSQL
+}
+
+enum Role {
+  CUSTOMER
+  SHOP_OWNER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  fullName     String
+  email        String     @unique
+  password     String?
+  googleId     String?    @unique
+  phone        String?
+  initials     String
+  role         Role       @default(CUSTOMER)
+  status       UserStatus @default(ACTIVE)
+  memberSince  DateTime   @default(now())
+  avatarUrl    String?
+  refreshToken String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  shops         Shop[]
+  orders        Order[]
+  reviews       Review[]
+  notifications Notification[]
+  conversations Conversation[]
+  messages      Message[]
+}
+
+enum ShopStatus {
+  APPROVED
+  PENDING
+  SUSPENDED
+}
+
+model Shop {
+  id          String     @id @default(uuid()) @db.Uuid
+  name        String
+  category    String
+  rating      Float      @default(0.0)
+  reviewCount Int        @default(0)
+  open        Boolean    @default(true)
+  promoted    Boolean    @default(false)
+  description String
+  address     String
+  latitude    Float
+  longitude   Float
+  
+  // PostGIS point for geospatial querying
+  location    Unsupported("geometry(Point, 4326)")?
+  
+  hours       Json       // e.g. [{ day: "Mon", hours: "9am - 5pm" }]
+  status      ShopStatus @default(PENDING)
+  ownerId     String     @db.Uuid
+  owner       User       @relation(fields: [ownerId], references: [id])
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  products      Product[]
+  orders        Order[]
+  reviews       Review[]
+  conversations Conversation[]
+  transactions  Transaction[]
+
+  @@index([ownerId])
+  @@index([status])
+}
+
+model Product {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String
+  description    String
+  price          Float
+  compareAtPrice Float?
+  unit           String?
+  outOfStock     Boolean  @default(false)
+  rating         Float    @default(0.0)
+  reviewCount    Int      @default(0)
+  imageUrl       String?
+  
+  shopId         String   @db.Uuid
+  shop           Shop     @relation(fields: [shopId], references: [id])
+  
+  categorySlug   String
+  category       Category @relation(fields: [categorySlug], references: [slug])
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  lineItems      OrderLineItem[]
+  reviews        Review[]
+
+  @@index([shopId])
+  @@index([categorySlug])
+}
+
+model Category {
+  slug  String @id
+  label String
+
+  products Product[]
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  READY
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum OrderMethod {
+  DELIVERY
+  PICKUP
+}
+
+model Order {
+  id          String      @id // e.g. "HS-10502"
+  shopId      String      @db.Uuid
+  shop        Shop        @relation(fields: [shopId], references: [id])
+  customerId  String      @db.Uuid
+  customer    User        @relation(fields: [customerId], references: [id])
+  
+  subtotal    Float
+  deliveryFee Float
+  tax         Float
+  total       Float
+  
+  status      OrderStatus @default(PENDING)
+  method      OrderMethod
+  address     String?
+  placedAt    DateTime    @default(now())
+  etaMinutes  Int
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  lineItems   OrderLineItem[]
+
+  @@index([shopId])
+  @@index([customerId])
+  @@index([status])
+}
+
+model OrderLineItem {
+  id        String  @id @default(uuid()) @db.Uuid
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  
+  productId String  @db.Uuid
+  product   Product @relation(fields: [productId], references: [id])
+  
+  name      String
+  price     Float
+  quantity  Int
+  unit      String?
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Review {
+  id             String   @id @default(uuid()) @db.Uuid
+  
+  productId      String?  @db.Uuid
+  product        Product? @relation(fields: [productId], references: [id])
+  
+  shopId         String?  @db.Uuid
+  shop           Shop?    @relation(fields: [shopId], references: [id])
+  
+  authorId       String   @db.Uuid
+  author         User     @relation(fields: [authorId], references: [id])
+  
+  authorName     String
+  authorInitials String
+  
+  rating         Int
+  comment        String
+  reply          String?
+  date           DateTime @default(now())
+
+  @@index([productId])
+  @@index([shopId])
+  @@index([authorId])
+}
+
+enum NotificationTone {
+  INFO
+  WARNING
+  ERROR
+  SUCCESS
+  ACCENT
+}
+
+model Notification {
+  id          String           @id @default(uuid()) @db.Uuid
+  userId      String           @db.Uuid
+  user        User             @relation(fields: [userId], references: [id])
+  
+  title       String
+  description String
+  tone        NotificationTone @default(INFO)
+  read        Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  @@index([userId])
+  @@index([read])
+}
+
+model Conversation {
+  id         String    @id @default(uuid()) @db.Uuid
+  
+  shopId     String    @db.Uuid
+  shop       Shop      @relation(fields: [shopId], references: [id])
+  
+  customerId String    @db.Uuid
+  customer   User      @relation(fields: [customerId], references: [id])
+  
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
+
+  messages   Message[]
+
+  @@index([shopId])
+  @@index([customerId])
+}
+
+model Message {
+  id             String       @id @default(uuid()) @db.Uuid
+  conversationId String       @db.Uuid
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  
+  senderId       String       @db.Uuid
+  sender         User         @relation(fields: [senderId], references: [id])
+  
+  fromShop       Boolean
+  text           String
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+}
+
+enum TransactionType {
+  SALE
+  PAYOUT
+  FEE
+  REFUND
+}
+
+model Transaction {
+  id          String          @id @default(uuid()) @db.Uuid
+  shopId      String          @db.Uuid
+  shop        Shop            @relation(fields: [shopId], references: [id])
+  
+  date        DateTime        @default(now())
+  description String
+  type        TransactionType
+  amount      Float
+
+  @@index([shopId])
+  @@index([type])
+}
