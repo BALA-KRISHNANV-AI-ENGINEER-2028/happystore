@@ -11,6 +11,7 @@ import { useAppDispatch } from "@/store";
 import { exchangeGoogleCodeThunk } from "@/store/slices/authSlice";
 import { toast } from "@/components/ui/toaster";
 import { ROUTES } from "@/constants";
+import { HappyStoreLogo } from "@/components/brand/happy-store-logo";
 
 export default function GoogleCallbackPage() {
   const [searchParams] = useSearchParams();
@@ -47,8 +48,9 @@ export default function GoogleCallbackPage() {
   }, [searchParams, dispatch, navigate]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-3">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+      <HappyStoreLogo size={40} />
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent mt-2" />
       <p className="text-body-sm text-foreground-muted">Finishing sign-in with Google…</p>
     </div>
   );

@@ -2,7 +2,8 @@ import { Fragment, type ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { Drawer } from "vaul";
 import type { LucideIcon } from "lucide-react";
-import { Store, X } from "lucide-react";
+import { X } from "lucide-react";
+import { HappyStoreBag } from "@/components/brand/happy-store-logo";
 import { cn } from "@/lib/utils";
 
 export interface SidebarItem {
@@ -63,12 +64,13 @@ function SidebarNav({ groups, onNavigate }: SidebarNavProps) {
 
 function Brand({ label }: { label: string }) {
   return (
-    <div className="flex h-16 shrink-0 items-center gap-2 border-b border-border px-4">
-      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-foreground-on-primary">
-        <Store size={16} strokeWidth={2.5} />
-      </div>
+    <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-border px-4">
+      <HappyStoreBag size={30} />
       <div className="leading-tight">
-        <p className="font-display text-body-sm font-semibold text-foreground">Happy Store</p>
+        <p className="font-display text-body-sm font-bold tracking-tight text-foreground select-none">
+          <span className="text-[#FF7A00]">Happy</span>
+          <span>Store</span>
+        </p>
         <p className="text-caption text-foreground-subtle">{label}</p>
       </div>
     </div>
@@ -100,11 +102,15 @@ export function Sidebar({ groups, brandLabel, mobileOpen, onMobileOpenChange, fo
           <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
           <Drawer.Content className="fixed inset-y-0 left-0 z-40 flex h-full w-72 flex-col bg-surface shadow-lg outline-none lg:hidden">
             <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-4">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-foreground-on-primary">
-                  <Store size={16} strokeWidth={2.5} />
+              <div className="flex items-center gap-2.5">
+                <HappyStoreBag size={30} />
+                <div className="leading-tight">
+                  <p className="font-display text-body-sm font-bold tracking-tight text-foreground select-none">
+                    <span className="text-[#FF7A00]">Happy</span>
+                    <span>Store</span>
+                  </p>
+                  <p className="text-caption text-foreground-subtle">{brandLabel}</p>
                 </div>
-                <p className="font-display text-body-sm font-semibold text-foreground">{brandLabel}</p>
               </div>
               <button
                 onClick={() => onMobileOpenChange(false)}

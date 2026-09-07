@@ -1,4 +1,5 @@
-import { Moon, Sun, MapPin, Store } from "lucide-react";
+import { Moon, Sun, MapPin } from "lucide-react";
+import { HappyStoreLogo } from "@/components/brand/happy-store-logo";
 import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -127,14 +128,7 @@ export default function DesignTokensPage() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-foreground-on-primary">
-              <Store size={16} strokeWidth={2.5} />
-            </div>
-            <span className="font-display text-body-lg font-semibold text-foreground">
-              Happy Store
-            </span>
-          </div>
+          <HappyStoreLogo size={32} />
           <ThemeToggle />
         </div>
       </header>

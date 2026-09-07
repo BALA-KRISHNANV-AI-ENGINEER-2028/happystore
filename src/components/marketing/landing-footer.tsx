@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Store, Globe, MessageCircle, AtSign } from "lucide-react";
+import { Globe, MessageCircle, AtSign } from "lucide-react";
+import { HappyStoreLogo } from "@/components/brand/happy-store-logo";
 
 const columns = [
   {
@@ -45,11 +46,8 @@ export function LandingFooter() {
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-6">
           <div className="lg:col-span-2">
-            <div className="mb-3 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-foreground-on-primary">
-                <Store size={16} strokeWidth={2.5} />
-              </div>
-              <span className="font-display text-body-lg font-semibold text-foreground">Happy Store</span>
+            <div className="mb-3">
+              <HappyStoreLogo size={32} />
             </div>
             <p className="max-w-xs text-body-sm text-foreground-muted">
               Discover local. Shop smarter. Happy Store connects you with the

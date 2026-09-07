@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Store, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { HappyStoreLogo } from "@/components/brand/happy-store-logo";
 import { Button } from "@/components/ui/button";
 
 const links = [
@@ -16,11 +17,8 @@ export function LandingHeader() {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
-        <Link to="/" className="flex shrink-0 items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-foreground-on-primary">
-            <Store size={16} strokeWidth={2.5} />
-          </div>
-          <span className="font-display text-body-lg font-semibold text-foreground">Happy Store</span>
+        <Link to="/" className="flex shrink-0 items-center focus:outline-none" aria-label="Happy Store Home">
+          <HappyStoreLogo size={32} />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">

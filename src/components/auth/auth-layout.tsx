@@ -1,5 +1,7 @@
 import { Link, Outlet } from "react-router-dom";
-import { Store, ShieldCheck, Star, Users } from "lucide-react";
+import { ShieldCheck, Star, Users } from "lucide-react";
+import { HappyStoreBag, HappyStoreLogo } from "@/components/brand/happy-store-logo";
+import { ThemeSwitcher } from "@/components/auth/theme-switcher";
 
 const stats = [
   { icon: Users, label: "12k+ shoppers" },
@@ -10,7 +12,7 @@ const stats = [
 /** Split-screen shell shared by every auth page: brand panel + form panel. */
 export function AuthLayout() {
   return (
-    <div className="grid min-h-screen bg-background lg:grid-cols-2">
+    <div className="grid min-h-screen bg-background lg:grid-cols-2 transition-colors duration-200">
       {/* Brand panel */}
       <div className="relative hidden flex-col justify-between overflow-hidden bg-primary p-10 text-foreground-on-primary lg:flex">
         <div
@@ -21,11 +23,12 @@ export function AuthLayout() {
               "radial-gradient(60% 50% at 20% 15%, rgba(255,255,255,0.10) 0%, transparent 70%), radial-gradient(50% 50% at 85% 85%, rgba(232,163,61,0.18) 0%, transparent 70%)",
           }}
         />
-        <Link to="/" className="relative z-10 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white/15">
-            <Store size={16} strokeWidth={2.5} />
-          </div>
-          <span className="font-display text-body-lg font-semibold">Happy Store</span>
+        <Link to="/" className="relative z-10 flex items-center gap-3 select-none" aria-label="Happy Store Home">
+          <HappyStoreBag size={38} />
+          <span className="font-display text-heading-sm font-bold tracking-tight text-white">
+            <span className="text-[#FF7A00]">Happy</span>
+            <span>Store</span>
+          </span>
         </Link>
 
         <div className="relative z-10 max-w-sm">
@@ -51,19 +54,27 @@ export function AuthLayout() {
       </div>
 
       {/* Form panel */}
-      <div className="flex flex-col px-6 py-8 sm:px-10">
-        <Link to="/" className="mb-8 flex items-center gap-2 lg:hidden">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-foreground-on-primary">
-            <Store size={16} strokeWidth={2.5} />
+      <div className="relative flex flex-col justify-between px-6 py-8 sm:px-10 transition-colors duration-200">
+        {/* Top header: mobile brand on left, theme switcher pinned to top right */}
+        <div className="flex items-center justify-between mb-8">
+          <Link to="/" className="flex items-center lg:hidden" aria-label="Happy Store Home">
+            <HappyStoreLogo size={32} />
+          </Link>
+
+          {/* Top-right theme switcher (accessible and responsive on desktop and mobile) */}
+          <div className="ml-auto lg:absolute lg:top-8 lg:right-10 z-20">
+            <ThemeSwitcher />
           </div>
-          <span className="font-display text-body-lg font-semibold text-foreground">Happy Store</span>
-        </Link>
+        </div>
 
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-sm">
             <Outlet />
           </div>
         </div>
+
+        {/* Subtle spacing for vertical balance */}
+        <div className="hidden lg:block h-6" aria-hidden="true" />
       </div>
     </div>
   );

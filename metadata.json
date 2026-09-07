@@ -1,0 +1,8 @@
+{
+  "name": "Happy Store",
+  "description": "Hyperlocal commerce platform connecting customers with nearby local businesses.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
