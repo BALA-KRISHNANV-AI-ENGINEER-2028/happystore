@@ -2,6 +2,7 @@ import { Link, Outlet } from "react-router-dom";
 import { ShieldCheck, Star, Users } from "lucide-react";
 import { HappyStoreBag, HappyStoreLogo } from "@/components/brand/happy-store-logo";
 import { ThemeSwitcher } from "@/components/auth/theme-switcher";
+import marketImage from "@/assets/images/happy_store_market_1788871136406.jpg";
 
 const stats = [
   { icon: Users, label: "12k+ shoppers" },
@@ -9,20 +10,34 @@ const stats = [
   { icon: ShieldCheck, label: "Verified local shops" },
 ];
 
-/** Split-screen shell shared by every auth page: brand panel + form panel. */
+/** Split-screen shell shared by every auth page: brand panel with market imagery + form panel. */
 export function AuthLayout() {
   return (
     <div className="grid min-h-screen bg-background lg:grid-cols-2 transition-colors duration-200">
-      {/* Brand panel */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-primary p-10 text-foreground-on-primary lg:flex">
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(60% 50% at 20% 15%, rgba(255,255,255,0.10) 0%, transparent 70%), radial-gradient(50% 50% at 85% 85%, rgba(232,163,61,0.18) 0%, transparent 70%)",
-          }}
+      {/* Brand panel with neighborhood market image */}
+      <div className="relative hidden flex-col justify-between overflow-hidden p-10 text-white lg:flex">
+        {/* Market background image */}
+        <img
+          src={marketImage}
+          alt="Happy Store local neighborhood market"
+          className="absolute inset-0 h-full w-full object-cover object-center select-none"
+          referrerPolicy="no-referrer"
+          loading="eager"
         />
+
+        {/* Balanced gradient overlay to ensure text readability in both light & dark mode */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/70 dark:from-black/90 dark:via-black/55 dark:to-black/80 pointer-events-none"
+        />
+
+        {/* Subtle neighborhood brand tint complementing the Happy Store palette */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-emerald-950/20 mix-blend-multiply pointer-events-none"
+        />
+
+        {/* Logo - preserved exactly */}
         <Link to="/" className="relative z-10 flex items-center gap-3 select-none" aria-label="Happy Store Home">
           <HappyStoreBag size={38} />
           <span className="font-display text-heading-sm font-bold tracking-tight text-white">
@@ -31,21 +46,23 @@ export function AuthLayout() {
           </span>
         </Link>
 
+        {/* Brand messaging - preserved */}
         <div className="relative z-10 max-w-sm">
-          <p className="font-display text-heading-lg font-semibold leading-tight">
+          <p className="font-display text-heading-lg font-semibold leading-tight text-white drop-shadow-sm">
             Discover local.
             <br />
             Shop smarter.
           </p>
-          <p className="mt-3 text-body-sm text-white/75">
+          <p className="mt-3 text-body-sm text-white/90 drop-shadow-sm">
             Join thousands of neighbors already ordering from the shops down
             the street.
           </p>
         </div>
 
+        {/* Social proof / statistics - preserved */}
         <div className="relative z-10 flex flex-wrap gap-4">
           {stats.map(({ icon: Icon, label }) => (
-            <span key={label} className="inline-flex items-center gap-1.5 text-label text-white/80">
+            <span key={label} className="inline-flex items-center gap-1.5 text-label text-white/90 drop-shadow-sm">
               <Icon size={14} />
               {label}
             </span>

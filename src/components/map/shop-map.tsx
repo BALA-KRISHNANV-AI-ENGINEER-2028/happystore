@@ -52,7 +52,7 @@ export function ShopMap({
     if (shops.length > 0 && !selectedShop) {
       setSelectedShop(shops[0]);
     }
-  }, [shops]);
+  }, [shops, selectedShop]);
 
   // Reset the loading overlay whenever the viewport actually changes — the
   // iframe re-fetches its tiles for the new bbox and briefly looks stale.

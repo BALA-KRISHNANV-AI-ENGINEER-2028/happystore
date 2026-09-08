@@ -126,7 +126,14 @@ async function request<T>(path: string, options: RealRequestOptions = {}): Promi
 
   // 204 / empty bodies (e.g. logout, clear cart) — nothing to parse.
   const text = await response.text();
-  const parsed: unknown = text ? JSON.parse(text) : null;
+  let parsed: unknown = null;
+  if (text) {
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      parsed = { message: text };
+    }
+  }
 
   if (!response.ok) {
     // Error responses come from GlobalExceptionFilter (backend/src/common/filters),

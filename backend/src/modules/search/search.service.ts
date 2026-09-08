@@ -3,7 +3,7 @@ import { PrismaService } from '../../common/database/prisma.service';
 import Redis from 'ioredis';
 import { REDIS_CLIENT } from '../../common/redis/redis.module';
 import { buildPaginatedResult } from '../../common/utils/pagination.util';
-import { Shop, Product, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class SearchService {

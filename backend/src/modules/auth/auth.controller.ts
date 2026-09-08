@@ -119,7 +119,7 @@ export class AuthController {
       throw new BadRequestException('This sign-in attempt has expired or was already used. Please try again.');
     }
 
-    const { refreshToken, ...publicTokens } = result;
+    const { refreshToken: _refreshToken, ...publicTokens } = result;
     return publicTokens;
   }
 
@@ -142,7 +142,7 @@ export class AuthController {
     res.cookie('refreshToken', result.refreshToken, this.getRefreshCookieOptions());
 
     // Remove refreshToken from JSON response payload
-    const { refreshToken, ...publicTokens } = result;
+    const { refreshToken: _refreshToken, ...publicTokens } = result;
     return publicTokens;
   }
 
@@ -167,7 +167,7 @@ export class AuthController {
 
     res.cookie('refreshToken', result.refreshToken, this.getRefreshCookieOptions());
 
-    const { refreshToken, ...publicTokens } = result;
+    const { refreshToken: _refreshToken, ...publicTokens } = result;
     return publicTokens;
   }
 

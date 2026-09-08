@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Delete, Query, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { SearchService } from './search.service';
-import { Public, Roles } from '../../common/decorators/roles.decorator';
+import { Public } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '@prisma/client';
